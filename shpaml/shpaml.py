@@ -170,7 +170,7 @@ def html_block_tag(output, block, recurse):
         recurse(block[1:])
         append(prefix + end_tag)
     else:
-        start_tag, end_tag = apply_jquery_sugar(tag)
+        start_tag, end_tag = apply_jquery_sugar_multiple(tag)
         append(prefix + start_tag)
         recurse(block[1:])
         append(prefix + end_tag)
@@ -189,10 +189,47 @@ def convert_line(line):
         if m:
             return prefix + method(m)
 
-def apply_django_sugar(tag):      
+def apply_django_sugar(tag):
     start_tag = '{%% %s %%}' % tag
     end_tag = '{%% end%s %%}' % tag.split(" ")[0]
     return (start_tag, end_tag)
+
+APPEND_CLASS = re.compile(r'(.*)\.\-(.+)')
+APPEND_ID = re.compile(r'(.*)#\-(.+)')
+SIMPLE_CLASS = re.compile(r'(.*)\.(.+)')
+SIMPLE_ID = re.compile(r'(.*)#(.+)')
+
+def apply_jquery_sugar_multiple(markup):
+    tag_levels = re.compile(r' *> *').split(markup)
+    start_tags = []
+    tags = []
+    last_class = ''
+    last_id = ''
+    for tag_level in tag_levels:
+        append_class_match = APPEND_CLASS.match(tag_level)
+        if append_class_match:
+            tag_level = ''.join([
+                append_class_match.groups()[0], '.', last_class, '-', 
+                append_class_match.groups()[1], ])
+        else:
+            simple_class_match = SIMPLE_CLASS.match(tag_level)
+            if simple_class_match:
+                last_class = simple_class_match.groups()[1]
+        
+        append_id_match = APPEND_ID.match(tag_level)
+        if append_id_match:
+            tag_level = ''.join([
+                append_id_match.groups()[0], '#', last_id, '-', 
+                append_id_match.groups()[1], ])
+        else:
+            simple_id_match = SIMPLE_ID.match(tag_level)
+            if simple_id_match:
+                last_id = simple_id_match.groups()[1]
+        
+        start_tag, tag = apply_jquery_sugar(tag_level)
+        start_tags.append(start_tag)
+        tags.insert(0, tag)
+    return (''.join(start_tags), ''.join(tags))
 
 def apply_jquery_sugar(markup):
     if DIV_SHORTCUT.match(markup):
