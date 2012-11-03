@@ -226,6 +226,15 @@ def ids_and_classes(rest):
             classes.append(m.group(2))
 
     CLASS_OR_ID.sub(_match, rest)
+    
+    last_cls = classes[0]
+    for i, cls in enumerate(classes):
+        if i > 0:
+            if cls.startswith('-'):
+                classes[i] = last_cls + cls
+            else:
+                last_cls = cls
+    
     return jfixdots(ids), jfixdots(classes)
 
 def jfixdots(a): return fixdots(' '.join(a))
