@@ -23,16 +23,22 @@ class Loader(BaseLoader):
                 
                 class InnerLoader(loader.__class__):
                     is_usable = True
+                    
+                    def __init__(self, *args, **kwargs):
+                        self.as_super = super(InnerLoader, self)
+                        self.as_super.__init__(*args, **kwargs)
+                    
                     def load_template_source(self, *args, **kwargs):
-                        src = super(InnerLoader, self).load_template_source(*args, **kwargs)
+                        #src = super(InnerLoader, self).load_template_source(*args, **kwargs)
+                        src = self.as_super.load_template_source(*args, **kwargs)
                         return (shpaml.convert_text(src[0]), src[1])
                 
                 self._cached_loaders.append(InnerLoader())
         return self._cached_loaders
 
     def find_template(self, name, dirs=None):
-        if not name.endswith(".shpaml"):
-            raise TemplateDoesNotExist(name)
+        # if not name.endswith(".shpaml"):
+        #     raise TemplateDoesNotExist(name)
         
         for loader in self.loaders:
             try:
@@ -43,8 +49,8 @@ class Loader(BaseLoader):
         raise TemplateDoesNotExist(name)
 
     def load_template(self, template_name, template_dirs=None):
-        if not template_name.endswith('.shpaml'):
-            raise TemplateDoesNotExist(template_name)
+        # if not template_name.endswith('.shpaml'):
+        #     raise TemplateDoesNotExist(template_name)
         
         template, origin = self.find_template(template_name, template_dirs)
         if not hasattr(template, 'render'):

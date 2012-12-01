@@ -18,8 +18,8 @@ def get_shpaml_loader(loader):
         
     class Loader(baseclass):
         def load_template_source(self, template_name, *args, **kwargs):
-            if not template_name.endswith('.shpaml'):
-                raise TemplateDoesNotExist(template_name)
+            # if not template_name.endswith('.shpaml'):
+            #     raise TemplateDoesNotExist(template_name)
             shpaml_source, template_path = super(Loader, self).load_template_source(template_name, *args, **kwargs)
             html = shpaml.convert_text(shpaml_source)
             return html, template_path
